@@ -21,7 +21,7 @@
     "dotenv": "^17.4.2",
     "framer-motion": "^11.3.8",
     "lucide-react": "^0.400.0",
-    "mongoose": "^8.5.1",
+    "mongoose": "^8.23.1",
     "next": "^15.1.6",
     "next-auth": "^4.24.7",
     "next-cloudinary": "^6.13.0",
