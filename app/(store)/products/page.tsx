@@ -1,12 +1,11 @@
-"use client"; 
 import { Suspense } from 'react';
 import { ProductCard } from '@/components/store/ProductCard';
 import { ProductFilters } from '@/components/store/ProductFilters';
+import { SortBar } from '@/components/store/SortBar';
 import dbConnect from '@/lib/db';
 import Product from '@/models/Product';
 import Category from '@/models/Category';
-import { SlidersHorizontal } from 'lucide-react';
-import Link from 'next/link';
+
 interface SearchParams {
   category?: string;
   search?: string;
@@ -96,31 +95,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
 
         {/* Products Grid */}
         <div className="flex-1">
-          {/* Sort Bar */}
-          <div className="flex items-center justify-between mb-6 p-4 glass rounded-xl">
-            <div className="flex items-center gap-2 text-cream/50 text-sm lg:hidden">
-              <SlidersHorizontal size={16} />
-              <span>Filters</span>
-            </div>
-            <div className="flex items-center gap-3 ml-auto">
-              <span className="text-sm text-cream/40">Sort by:</span>
-              <select
-                defaultValue={searchParams.sort || '-createdAt'}
-                className="bg-transparent text-cream text-sm border border-white/10 rounded-lg px-3 py-1.5 focus:outline-none focus:border-brand-500/50"
-                onChange={(e) => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('sort', e.target.value);
-                  window.location.href = url.toString();
-                }}
-              >
-                <option value="-createdAt" className="bg-ink-soft">Newest</option>
-                <option value="price" className="bg-ink-soft">Price: Low to High</option>
-                <option value="-price" className="bg-ink-soft">Price: High to Low</option>
-                <option value="-averageRating" className="bg-ink-soft">Top Rated</option>
-                <option value="-numReviews" className="bg-ink-soft">Most Reviews</option>
-              </select>
-            </div>
-          </div>
+          {/* Sort Bar - Client Component */}
+          <SortBar currentSort={searchParams.sort || '-createdAt'} />
 
           {products.length === 0 ? (
             <div className="text-center py-20">
@@ -140,16 +116,23 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
               {pages > 1 && (
                 <div className="flex justify-center gap-2 mt-12">
                   {Array.from({ length: pages }, (_, i) => i + 1).map((p) => {
-                    const url = new URL(
-                      typeof window !== 'undefined'
-                        ? window.location.href
-                        : `http://localhost:3000/products`
-                    );
-                    url.searchParams.set('page', String(p));
+                    const params = new URLSearchParams();
+                    
+                    // Add all search params except page
+                    if (searchParams.category) params.set('category', searchParams.category);
+                    if (searchParams.search) params.set('search', searchParams.search);
+                    if (searchParams.minPrice) params.set('minPrice', searchParams.minPrice);
+                    if (searchParams.maxPrice) params.set('maxPrice', searchParams.maxPrice);
+                    if (searchParams.sort) params.set('sort', searchParams.sort);
+                    if (searchParams.featured) params.set('featured', searchParams.featured);
+                    
+                    // Set the page number
+                    params.set('page', String(p));
+                    
                     return (
-                      <Link
+                      <a
                         key={p}
-                        href={`/products?${new URLSearchParams({ ...Object.fromEntries(Object.entries(searchParams).filter(([_, v]) => v !== undefined) as [string, string][]), page: String(p) })}`}
+                        href={`/products?${params.toString()}`}
                         className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-medium transition-all ${
                           p === page
                             ? 'bg-brand-500 text-white'
@@ -157,7 +140,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
                         }`}
                       >
                         {p}
-                      </Link>
+                      </a>
                     );
                   })}
                 </div>
