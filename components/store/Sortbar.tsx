@@ -5,7 +5,9 @@ import { SlidersHorizontal } from 'lucide-react';
 
 interface SortBarProps {
   currentSort?: string;
-}
+}     
+
+
 
 export function SortBar({ currentSort = '-createdAt' }: SortBarProps) {
   const router = useRouter();
