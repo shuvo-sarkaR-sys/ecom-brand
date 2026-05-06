@@ -4,13 +4,14 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import Order from '@/models/Order';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     await dbConnect();
 
+    const params = await context.params;
     const order = await Order.findById(params.id)
       .populate('user', 'name email')
       .populate('items.product', 'name images slug');
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== 'admin') {
@@ -36,6 +37,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     await dbConnect();
     const data = await req.json();
+    const params = await context.params;
 
     const updateData: any = { status: data.status };
     if (data.trackingNumber) updateData.trackingNumber = data.trackingNumber;
